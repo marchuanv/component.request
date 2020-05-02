@@ -1,6 +1,7 @@
 const http = require("http");
 const logging = require("logging");
-const component = require("component.secure");
+const requestHandlers = require("component.request.handlers");
+const secureRequest = require("component.request.secure");
 const deferredRequests = [];
 
 const startHttpServer = async ({ privatePort }) => {
@@ -15,12 +16,12 @@ const startHttpServer = async ({ privatePort }) => {
             let res = { headers: {} };
             const host = request.headers["host"].split(":")[0];
             const port = Number(request.headers["host"].split(":")[1]) || 80;
-            logging.write("Component Server",`retrieved host: ${host} and port: ${publicPort} from header.`);
+            logging.write("Server Request",`retrieved host: ${host} and port: ${publicPort} from header.`);
             const requestUrl = `${host}:${publicPort}${request.url}`;
-            logging.write("Component Server",`received request for ${requestUrl}`);
+            logging.write("Server Request",`received request for ${requestUrl}`);
 
             try {
-                res = await component.http.secure.handle({ 
+                res = await secureRequest.handle({ 
                     host, 
                     publicPort, 
                     path: request.url, 
@@ -38,33 +39,29 @@ const startHttpServer = async ({ privatePort }) => {
                                     resolve({});
                                 }
                             } else {
-                                const handler = module.exports.http.handlers.find( h => h.publicHost === publicHost && h.publicPort === publicPort && h.path ===  request.url);
                                 let results;
                                 let isDeferred = false;
+                                let tryCount = 0;
                                 const id = setInterval(()=>{
+                                    tryCount = tryCount + 1;
                                     if (results){
                                         clearInterval(id);
-                                        if (isDeferred === true){
-                                            deferredRequests.push({ fromhost, fromport, path: request.url, results });
-                                        } else {
-                                            results.statusCode = 200;
-                                            resolve(results);
-                                        }
-                                    } else {
-                                        if (isDeferred === false){
-                                            logging.write("Component Server",`deferring ${requestUrl} request`);
-                                            isDeferred = true;
-                                            resolve({ data: "Request Deferred", contentType: "text/plain", statusCode: 202 });
-                                        }
+                                        results.statusCode = 200;
+                                        resolve(results);
+                                    } else if (tryCount === 3) {
+                                        logging.write("Server Request",`deferring ${requestUrl} request`);
+                                        isDeferred = true;
+                                        resolve({ data: "Request Deferred", contentType: "text/plain", statusCode: 202 });
+                                        clearInterval(id);
                                     }
                                 },1000);
-                                results = await handler.callback({data, fromhost, fromport });
+                                await requestHandlers.handle({ publicHost, publicPort, privateHost, privatePort, path: request.url }, { data, fromhost, fromport });
                             }
                         });
                     }
                 });
             } catch(err) {
-                logging.write("Component Server"," ", err.toString());
+                logging.write("Server Request"," ", err.toString());
                 const message = "Internal Server Error";
                 res.statusCode = 500;
                 res.statusMessage = message;
@@ -76,12 +73,7 @@ const startHttpServer = async ({ privatePort }) => {
         });
     });
     httpServer.listen(privatePort);
-    logging.write("Component Server", `listening on port ${privatePort}`);
-};
-
-const handleRequest =  ({ publicHost, publicPort, privatePort, path, security, callback }) => {
-    module.exports.http.handlers.push({ publicHost, publicPort, path, callback });
-    component.http.handlers.push({ publicHost, publicPort, path, security });
+    logging.write("Server Request", `listening on port ${privatePort}`);
 };
 
 const httpRequest = ({ host, port, path, method, headers, data }) => {
@@ -108,20 +100,20 @@ const httpRequest = ({ host, port, path, method, headers, data }) => {
 
 const sendRequest = async ({ host, port, path, method, headers, data, retryCount = 1 }) => {
     const requestUrl = `${host}:${port}${path}`;
-    logging.write("Component Client",`sending request to ${requestUrl}`);
-    let results = await component.http.secure.send({ host, port, path, requestHeaders: headers, data, callback: async ({ requestHeaders, data }) => {
+    logging.write("Client Request",`sending request to ${requestUrl}`);
+    let results = await secureRequest.send({ host, port, path, requestHeaders: headers, data, callback: async ({ requestHeaders, data }) => {
         return await httpRequest({ host, port, path, method, headers: requestHeaders, data });
     }});
-    logging.write("Component Client",`received response from ${requestUrl}`);
+    logging.write("Client Request",`received response from ${requestUrl}`);
     if (results.error || results.statusCode === 202) {
-        logging.write("Component Client",`request was deferred or failed, retrying ${retryCount} of 3`);
+        logging.write("Client Request",`request was deferred or failed, retrying ${retryCount} of 3`);
         if (retryCount === 3){
             if (results.error ) {
                 throw results.error;
             }
             if (results.statusCode === 202){
                 const message = `deferred request for ${requestUrl} did not finish.`;
-                logging.write("Component Client",message);
+                logging.write("Client Request",message);
                 throw new Error(message);
             }
         }
@@ -139,7 +131,6 @@ module.exports = {
     http: { 
         handle: handleRequest, 
         send: sendRequest,
-        start: startHttpServer,
-        handlers: []
+        start: startHttpServer
     }
 };
