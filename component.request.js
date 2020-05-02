@@ -20,6 +20,7 @@ module.exports = {
                 });
             });
             request.on('error', async (error) => {
+                logging.write("Sending Request",`error sending request retry ${retryCount} of 3`);
                 if (retryCount === 3){
                     throw error;
                 } else {
