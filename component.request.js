@@ -94,6 +94,6 @@ module.exports = {
     http: { 
         handle: handleRequest, 
         send: sendRequest,
-        start: startHttpServer
+        startServer: startHttpServer
     }
 };
