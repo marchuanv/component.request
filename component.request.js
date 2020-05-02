@@ -1,6 +1,7 @@
 const http = require("http");
 const logging = require("logging");
 const requestHandler = require("component.request.handler");
+const componentRequestSecure = require("component.request.secure");
 
 const startHttpServer = async ({ privatePort }) => {
     const http = require('http');
@@ -64,7 +65,7 @@ const handleRequest =  ({ publicHost, publicPort, privatePort, path, security, c
 const sendRequest = async ({ host, port, path, method, headers, data, retryCount = 1 }) => {
     const requestUrl = `${host}:${port}${path}`;
     logging.write("Client Request",`sending request to ${requestUrl}`);
-    let results = await secureRequest.send({ host, port, path, requestHeaders: headers, data, callback: async ({ requestHeaders, data }) => {
+    let results = await componentRequestSecure.send({ host, port, path, requestHeaders: headers, data, callback: async ({ requestHeaders, data }) => {
         return await httpRequest({ host, port, path, method, headers: requestHeaders, data });
     }});
     logging.write("Client Request",`received response from ${requestUrl}`);
