@@ -1,5 +1,5 @@
-const component = require("./component.js");
-const componentSecure = require("component.secure");
+const component = require("./component.request.js");
+const componentSecure = require("component.request.secure");
 const logging = require("logging");
 logging.config(["Component Client","Component Server","Component Secure Client","Component Secure Server"]);
 (async()=>{
