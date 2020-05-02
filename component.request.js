@@ -1,8 +1,6 @@
 const http = require("http");
 const logging = require("logging");
-const requestHandlers = require("component.request.handlers");
-const secureRequest = require("component.request.secure");
-const deferredRequests = [];
+const requestHandler = require("component.request.handler");
 
 const startHttpServer = async ({ privatePort }) => {
     const http = require('http');
@@ -10,7 +8,7 @@ const startHttpServer = async ({ privatePort }) => {
     httpServer.on("request", (request, response)=>{
         let body = '';
         request.on('data', chunk => {
-            body += chunk.toString(); // convert buffer to string
+            body += chunk.toString();
         });
         request.on('end', async () => {
             let res = { headers: {} };
@@ -19,47 +17,8 @@ const startHttpServer = async ({ privatePort }) => {
             logging.write("Server Request",`retrieved host: ${host} and port: ${publicPort} from header.`);
             const requestUrl = `${host}:${publicPort}${request.url}`;
             logging.write("Server Request",`received request for ${requestUrl}`);
-
             try {
-                res = await secureRequest.handle({ 
-                    host, 
-                    publicPort, 
-                    path: request.url, 
-                    requestHeaders: request.headers, 
-                    requestData: body, 
-                    callback: ({data, fromhost, fromport }) => {
-                        return new Promise(async (resolve) => {
-                            const deferredRequestIndex = deferredRequests.findIndex(dr => dr.fromhost === fromhost && dr.fromport === fromport && dr.path === request.url);
-                            if (deferredRequestIndex > -1){
-                                const deferredRequest = deferredRequests.splice(deferredRequestIndex,1)[0];
-                                if (deferredRequest){
-                                    deferredRequest.results.statusCode = 200;
-                                    resolve(deferredRequest.results);
-                                } else {
-                                    resolve({});
-                                }
-                            } else {
-                                let results;
-                                let isDeferred = false;
-                                let tryCount = 0;
-                                const id = setInterval(()=>{
-                                    tryCount = tryCount + 1;
-                                    if (results){
-                                        clearInterval(id);
-                                        results.statusCode = 200;
-                                        resolve(results);
-                                    } else if (tryCount === 3) {
-                                        logging.write("Server Request",`deferring ${requestUrl} request`);
-                                        isDeferred = true;
-                                        resolve({ data: "Request Deferred", contentType: "text/plain", statusCode: 202 });
-                                        clearInterval(id);
-                                    }
-                                },1000);
-                                await requestHandlers.handle({ publicHost, publicPort, privateHost, privatePort, path: request.url }, { data, fromhost, fromport });
-                            }
-                        });
-                    }
-                });
+                res = await requestHandler.callback({ host, port, path: request.url, headers: request.headers, data: body });
             } catch(err) {
                 logging.write("Server Request"," ", err.toString());
                 const message = "Internal Server Error";
@@ -96,6 +55,10 @@ const httpRequest = ({ host, port, path, method, headers, data }) => {
         request.write(data);
         request.end();
     });
+};
+
+const handleRequest =  ({ publicHost, publicPort, privatePort, path, security, callback }) => {
+    requestHandler.register({ publicHost, publicPort, privatePort, path, security, callback });
 };
 
 const sendRequest = async ({ host, port, path, method, headers, data, retryCount = 1 }) => {
