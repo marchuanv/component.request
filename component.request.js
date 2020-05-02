@@ -3,7 +3,7 @@ const logging = require("logging");
 const requestHandler = require("component.request.handler");
 const componentRequestSecure = require("component.request.secure");
 
-const startHttpServer = async ({ privatePort }) => {
+const requestListener = async ({ privatePort }) => {
     const http = require('http');
     const httpServer = http.createServer();
     httpServer.on("request", (request, response)=>{
@@ -15,10 +15,9 @@ const startHttpServer = async ({ privatePort }) => {
             let res = { headers: {} };
             const host = request.headers["host"].split(":")[0];
             const port = Number(request.headers["host"].split(":")[1]) || 80;
-            logging.write("Receiving Request",`retrieved host: ${host} and port: ${publicPort} from header.`);
-            const requestUrl = `${host}:${publicPort}${request.url}`;
-            logging.write("Receiving Request",`received request for ${requestUrl}`);
+            const { fromhost } = request.headers;
             try {
+                logging.write("Receiving Request",`received request for ${request.url} from ${fromhost || "unknown"}`);
                 res = await requestHandler.callback({ host, port, path: request.url, headers: request.headers, data: body });
             } catch(err) {
                 logging.write("Receiving Request"," ", err.toString());
@@ -33,7 +32,7 @@ const startHttpServer = async ({ privatePort }) => {
         });
     });
     httpServer.listen(privatePort);
-    logging.write("Receiving Request", `listening on port ${privatePort}`);
+    logging.write("Request Listener", `listening on port ${privatePort}`);
 };
 
 const httpRequest = ({ host, port, path, method, headers, data }) => {
@@ -92,9 +91,7 @@ const sendRequest = async ({ host, port, path, method, headers, data, retryCount
 };
 
 module.exports = { 
-    http: { 
-        handle: handleRequest, 
-        send: sendRequest,
-        startServer: startHttpServer
-    }
+    handle: handleRequest, 
+    send: sendRequest,
+    listen: requestListener
 };
