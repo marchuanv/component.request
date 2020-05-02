@@ -15,13 +15,13 @@ const startHttpServer = async ({ privatePort }) => {
             let res = { headers: {} };
             const host = request.headers["host"].split(":")[0];
             const port = Number(request.headers["host"].split(":")[1]) || 80;
-            logging.write("Server Request",`retrieved host: ${host} and port: ${publicPort} from header.`);
+            logging.write("Receiving Request",`retrieved host: ${host} and port: ${publicPort} from header.`);
             const requestUrl = `${host}:${publicPort}${request.url}`;
-            logging.write("Server Request",`received request for ${requestUrl}`);
+            logging.write("Receiving Request",`received request for ${requestUrl}`);
             try {
                 res = await requestHandler.callback({ host, port, path: request.url, headers: request.headers, data: body });
             } catch(err) {
-                logging.write("Server Request"," ", err.toString());
+                logging.write("Receiving Request"," ", err.toString());
                 const message = "Internal Server Error";
                 res.statusCode = 500;
                 res.statusMessage = message;
@@ -33,7 +33,7 @@ const startHttpServer = async ({ privatePort }) => {
         });
     });
     httpServer.listen(privatePort);
-    logging.write("Server Request", `listening on port ${privatePort}`);
+    logging.write("Receiving Request", `listening on port ${privatePort}`);
 };
 
 const httpRequest = ({ host, port, path, method, headers, data }) => {
@@ -64,20 +64,20 @@ const handleRequest =  ({ publicHost, publicPort, privatePort, path, security, c
 
 const sendRequest = async ({ host, port, path, method, headers, data, retryCount = 1 }) => {
     const requestUrl = `${host}:${port}${path}`;
-    logging.write("Client Request",`sending request to ${requestUrl}`);
+    logging.write("Sending Request",`sending request to ${requestUrl}`);
     let results = await componentRequestSecure.send({ host, port, path, requestHeaders: headers, data, callback: async ({ requestHeaders, data }) => {
         return await httpRequest({ host, port, path, method, headers: requestHeaders, data });
     }});
-    logging.write("Client Request",`received response from ${requestUrl}`);
+    logging.write("Sending Request",`received response from ${requestUrl}`);
     if (results.error || results.statusCode === 202) {
-        logging.write("Client Request",`request was deferred or failed, retrying ${retryCount} of 3`);
+        logging.write("Sending Request",`request was deferred or failed, retrying ${retryCount} of 3`);
         if (retryCount === 3){
             if (results.error ) {
                 throw results.error;
             }
             if (results.statusCode === 202){
                 const message = `deferred request for ${requestUrl} did not finish.`;
-                logging.write("Client Request",message);
+                logging.write("Sending Request",message);
                 throw new Error(message);
             }
         }

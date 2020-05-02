@@ -1,7 +1,7 @@
 {
   "name": "component.request",
   "version": "1.0.0",
-  "description": "module for handling most types of network communication by way of a request",
+  "description": "module for sending and handling requests over a network",
   "main": "component.request.js",
   "engines": {
     "node": "12.16.1",
