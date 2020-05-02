@@ -25,6 +25,8 @@ module.exports = {
                 if (retryCount <= 3){
                     const res = await module.exports.send({ host, port, path, method, headers, data, retryCount });
                     resolve(res);
+                } else {
+                    resolve({ data: error, headers: request.headers, statusCode: 500, statusMessage: "Connection Error" });
                 }
             });
             request.write(data);
