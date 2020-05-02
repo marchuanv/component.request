@@ -1,7 +1,7 @@
 {
   "name": "component.request",
   "version": "1.0.0",
-  "description": "module for sending and handling requests over a network",
+  "description": "module for sending requests over a network",
   "main": "component.request.js",
   "engines": {
     "node": "12.16.1",
@@ -21,8 +21,6 @@
   },
   "homepage": "https://github.com/marchuanv/component.request#readme",
   "dependencies": {
-    "component.request.handler": "git+https://github.com/marchuanv/component.request.handler.git",
-    "component.request.secure": "git+https://github.com/marchuanv/component.request.secure.git",
     "logging": "git+https://github.com/marchuanv/logging.git"
   }
 }
