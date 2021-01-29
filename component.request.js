@@ -5,11 +5,13 @@ module.exports = {
     send: ({ host, port, path, method, headers, data, retryCount = 1  }) => {
         return new Promise((resolve, reject) => {
             
+            const requestUrl = `${host}:${port}${path}`;
+
             if (typeof data !== "string"){
+                logging.write("Sending Request",`input data provided for ${requestUrl} is not a string`);
                 return reject("data provided is not a string");
             }
             
-            const requestUrl = `${host}:${port}${path}`;
             delete headers["content-length"];
             headers["Content-Length"] = Buffer.byteLength(data);
             logging.write("Sending Request",`sending request to ${requestUrl}`);
