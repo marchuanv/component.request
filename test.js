@@ -12,8 +12,8 @@ const componentRequest = require("./component.request.js");
             passphrase: "secure1",
             fromhost: "localhost",
             fromport: 6000
-        }, 
-        data: "Hello World From Client" 
+        },
+        data: `{ "message": "Hello World From Client" }`
     });
 
     await componentRequest.send({
@@ -28,7 +28,7 @@ const componentRequest = require("./component.request.js");
             fromhost: "localhost",
             fromport: 6000
         }, 
-        data: "Hello World From Client" 
+        data: `{ "message": "Hello World From Client" }` 
     });
 
     await componentRequest.send({
@@ -43,7 +43,7 @@ const componentRequest = require("./component.request.js");
             fromhost: "localhost",
             fromport: 6000
         }, 
-        data: {message:"bla"}
+        data: `{ "message": "bla" }`
     });
        
 })().catch((err)=>{

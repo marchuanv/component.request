@@ -1,6 +1,6 @@
 const http = require("http");
 const logging = require("component.logging");
-module.exports = { 
+module.exports = {
     send: ({ host, port, path, method, headers, data, retryCount = 1  }) => {
         return new Promise((resolve, reject) => {
             
