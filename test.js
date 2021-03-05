@@ -1,6 +1,4 @@
 const componentRequest = require("./component.request.js");
-const logging = require("logging");
-logging.config.add("Sending Request");
 (async()=>{
 
     await componentRequest.send({
