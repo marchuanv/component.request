@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "module for sending requests over a network",
   "main": "component.request.js",
+  "hostname":"localhost",
+  "port": 3000,
   "engines": {
     "node": "12.16.1",
     "npm": "6.13.4"
