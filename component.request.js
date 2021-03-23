@@ -1,7 +1,7 @@
 const http = require("http");
 const component = require("component");
 let sendRequest;
-component.register({moduleName: "component.request "}).then((request) => {
+component.register({moduleName: "component.request"}).then((request) => {
     const { host, port } = request;
     sendRequest = ({ path, method, headers, data, retryCount = 1 }) => {
         return new Promise((resolve, reject) => {
