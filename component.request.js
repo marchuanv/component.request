@@ -1,7 +1,9 @@
 const http = require("http");
-const logging = require("component.logging");
-module.exports = {
-    send: ({ host, port, path, method, headers, data, retryCount = 1  }) => {
+const component = require("component");
+let sendRequest;
+component.register({moduleName: "component.request "}).then((request) => {
+    const { host, port } = request;
+    sendRequest = ({ path, method, headers, data, retryCount = 1 }) => {
         return new Promise((resolve, reject) => {
             
             const requestUrl = `${host}:${port}${path}`;
@@ -39,4 +41,5 @@ module.exports = {
             request.end();
         });
     }
-};
+});
+module.exports = { send: sendRequest };
