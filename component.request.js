@@ -7,7 +7,7 @@ component.register({moduleName: "component.request"}).then(({ request }) => {
         return new Promise((resolve, reject) => {
             const requestUrl = `${host}:${port}${path}`;
             if (typeof data !== "string"){
-                logging.write("Sending Request",`input data provided for ${requestUrl} is not a string`);
+                request.log(`input data provided for ${requestUrl} is not a string`);
                 return reject("data provided is not a string");
             }
             delete headers["content-length"];
