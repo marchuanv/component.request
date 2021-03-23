@@ -39,4 +39,8 @@ component.register({moduleName: "component.request"}).then(({ request }) => {
         });
     }
 });
-module.exports = { send: sendRequest };
+module.exports = { 
+    send: async ({ path, method, headers, data }) => {
+        return await sendRequest({ path, method, headers, data });
+    }
+};
