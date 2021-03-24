@@ -1,7 +1,7 @@
 const http = require("http");
 const component = require("component");
 module.exports = { 
-    send: ({ path, method, headers, data }) => {
+    send: ({ path, method, headers, data, retryCount = 1 }) => {
         return new Promise((resolve, reject) => {
             component.register(module).then(({ request }) => {
                 const { host, port } = request;
@@ -28,7 +28,7 @@ module.exports = {
                     request.log(`error sending request retry ${retryCount} of 3`, error);
                     retryCount = retryCount + 1;
                     if (retryCount <= 3){
-                        const res = await sendRequest({ path, method, headers, data, retryCount });
+                        const res = await module.exports.send({ path, method, headers, data, retryCount });
                         resolve(res);
                     } else {
                         resolve({ data: error, headers: req.headers, statusCode: 500, statusMessage: "Connection Error" });
