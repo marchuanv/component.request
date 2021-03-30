@@ -27,9 +27,6 @@
     "host": "localhost",
     "port": 3000,
     "channel": 3000,
-    "subscribers": [{
-      "moduleName": "component.request.deferred"
-    }],
     "publishers": []
   }
 }
