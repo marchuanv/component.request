@@ -3,7 +3,8 @@ const component = require("component");
 module.exports = { 
     send: ({ path, method, headers, data, retryCount = 1 }) => {
         return new Promise((resolve, reject) => {
-            component.register(module).then(({ request }) => {
+            component.register(module);
+            component.on({ eventName: "registered", moduleName: "component.request" }, ({ request }) => {
                 const { host, port } = request;
                 const requestUrl = `${host}:${port}${path}`;
                 if (typeof data !== "string"){
