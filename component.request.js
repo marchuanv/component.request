@@ -3,8 +3,7 @@ const component = require("component");
 module.exports = { 
     send: ({ path, method, headers, data, retryCount = 1 }) => {
         return new Promise((resolve, reject) => {
-            component.register(module);
-            component.on({ eventName: "registered", moduleName: "component.request" }, ({ request }) => {
+            component.on({ eventName: "registered" }, ({ request }) => {
                 const { host, port } = request;
                 const requestUrl = `${host}:${port}${path}`;
                 if (typeof data !== "string"){
@@ -38,6 +37,7 @@ module.exports = {
                 req.write(data);
                 req.end();
             });
+            component.register(module);
         });
     }
 };
