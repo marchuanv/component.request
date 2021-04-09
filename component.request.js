@@ -3,7 +3,7 @@ const component = require("component");
 module.exports = { 
     send: ({ path, method, headers, data, retryCount = 1 }) => {
         return new Promise((resolve, reject) => {
-            component.on({ eventName: "moduleregistered" }, ({ request }) => {
+            component.load(module).then(({ request }) => {
                 const { host, port } = request;
                 const requestUrl = `${host}:${port}${path}`;
                 if (typeof data !== "string"){
@@ -37,7 +37,6 @@ module.exports = {
                 req.write(data);
                 req.end();
             });
-            component.register(module);
         });
     }
 };
