@@ -4,7 +4,7 @@ module.exports = {
     send: ({ path, method, headers, data, retryCount = 1 }) => {
         return new Promise((resolve, reject) => {
             component.load(module).then(({ request }) => {
-                const { host, port } = request;
+                const { host, port } = request.config;
                 const requestUrl = `${host}:${port}${path}`;
                 if (typeof data !== "string"){
                     request.log(`input data provided for ${requestUrl} is not a string`);
